@@ -1,13 +1,7 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+#----------------------------#
+## Loading and preprocessing the data
+#----------------------------#
 
-### Loading and preprocessing the data
-
-```
 library(dplyr)
 
 # Load the data
@@ -16,49 +10,42 @@ activity <- read.csv("activity\\activity.csv", stringsAsFactors = FALSE)
 # Process/transform the data
 activity$date <- as.Date(activity$date)
 activity_tb <- tbl_df(activity)
-```
 
----
+#----------------------------#
+## What is mean total number of steps taken per day?
+#----------------------------#
 
-### What is mean total number of steps taken per day?
-
-```{r plot1, fig.widht = 4, fig.height = 3, message = FALSE}
 # Calculate the total number of steps taken per day
 activity_date <- group_by(activity_tb,date)
 total_steps_per_day <- summarise(activity_date, steps = sum(steps, na.rm = TRUE))
 
 # Create histogram of the total number of steps taken each day
-with(total_steps_per_day, hist(steps, breaks = 10, xlab = "Total number of steps per day", main = "Histogram of total number of steps per day"))
+with(total_steps_per_day, hist(steps, breaks = 10))
 
 # Calculate mean and median of total number of steps per day
 summary(total_steps_per_day$steps)
-```
 
----
+#----------------------------#
+## What is the average daily activity pattern?
+#----------------------------#
 
-### What is the average daily activity pattern?
-
-```{r plot2, fig.widht = 4, fig.height = 3, message = FALSE}
 # Create time series plot of the 5-minute interval and average number of steps taken, averaged across all days
 activity_interval <- group_by(activity_tb, interval)
 average_steps_per_int <- summarise(activity_interval, steps = mean(steps, na.rm = TRUE))
-with(average_steps_per_int, plot(interval, steps, type = "l", xlab = "Interval", ylab = "Average number of steps", main = "Average number of steps per interval"))
+with(average_steps_per_int, plot(interval, steps, type = "l"))
 
-## Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps
+# Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps
 max_average_steps <- max(average_steps_per_int$steps, na.rm = TRUE)
 filter(average_steps_per_int, steps == max_average_steps)
-```
 
----
+#----------------------------#
+## Imputing missing values
+#----------------------------#
 
-### Imputing missing values
-
-```{r plot3, fig.widht = 4, fig.height = 3, message = FALSE}
 # Calculate the total number o fmissing values in the dataset
 sum(is.na(activity_tb$steps))
 
-# Create strategy: replacing missing values by rounded mean of interval
-
+# Create strategy: replacing missing values by mean of interval
 # Create new dataset that is equal to the origina ldataset but with the missing data filled in
 activity_na <- activity_tb
 
@@ -76,23 +63,18 @@ activity_na_date <- group_by(activity_na,date)
 
 total_steps_na_per_day <- summarise(activity_na_date, steps = sum(steps))
 
-with(total_steps_na_per_day, hist(steps, breaks = 10, xlab = "Total number of steps per day", main = "Histogram of total number of steps per day"))
+with(total_steps_na_per_day, hist(steps, breaks = 10))
 
 # Calculate mean and median
 summary(total_steps_na_per_day$steps)
 
-# Difference mean
-summary(total_steps_per_day$steps)[4] - summary(total_steps_na_per_day$steps)[4]
+# Mean and median with missing values
+summary(total_steps_per_day$steps)
 
-# Difference median
-summary(total_steps_per_day$steps)[3] - summary(total_steps_na_per_day$steps)[3]
-```
+#----------------------------#
+## Are there differences in activity patterns between weekdays and weekends?
+#----------------------------#
 
----
-
-### Are there differences in activity patterns between weekdays and weekends?
-
-```{r plot4, fig.widht = 4, fig.height = 3, message = FALSE}
 # Create a new factor variable in the dataset with two levels - "weekday" and "weekday" indicating whether a given date is a weekday or weekend day 
 activity_weekdays <- mutate(activity_na, weekday = factor(weekdays(date)))
 
@@ -110,11 +92,4 @@ activity_weekdays$week_f <- factor(activity_weekdays$week_f)
 activity_weekdays_grouped <- group_by(activity_weekdays, interval, week_f)
 average_steps_weekdays_per_int <- summarise(activity_weekdays_grouped, steps = mean(steps))
 
-ggplot(average_steps_weekdays_per_int, aes(interval, steps)) +
-    geom_line() + 
-    facet_grid( .~week_f) + 
-    xlab("Interval") + 
-    ylab("Average number of steps") + 
-    ggtitle("Activity patterns of weekdays and weekends")
-    
-```
+ggplot(average_steps_weekdays_per_int, aes(interval, steps)) + geom_line() + facet_grid( .~week_f)
